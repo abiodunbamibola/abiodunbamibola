@@ -1,7 +1,6 @@
 - 👋 Hi, I’m @abiodunbamibola
 - 👀 I’m interested in ...learning Python  and other digital skills 
 - 🌱 I’m currently learning ... Python 
-- 💞️ I’m looking to collaborate on ... someone that could teach 
 - 📫 How to reach me ... on Twitter @abiodunbabalola
 
 <!---
