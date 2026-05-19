@@ -33,28 +33,46 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+    outputs:
+      is-node-app: ${{ steps.detect-node.outputs.is-node-app }}
     steps:
     - uses: actions/checkout@v4
 
+    - name: Detect Node.js app
+      id: detect-node
+      shell: bash
+      run: |
+        package_dir="${AZURE_WEBAPP_PACKAGE_PATH%/}"
+        if [ -f "$package_dir/package.json" ]; then
+          echo "is-node-app=true" >> "$GITHUB_OUTPUT"
+        else
+          echo "is-node-app=false" >> "$GITHUB_OUTPUT"
+          echo "No package.json found at $package_dir; skipping Node build and Azure deployment."
+        fi
+
     - name: Set up Node.js
+      if: steps.detect-node.outputs.is-node-app == 'true'
       uses: actions/setup-node@v4
       with:
         node-version: ${{ env.NODE_VERSION }}
-        cache: 'npm'
 
     - name: npm install, build, and test
+      if: steps.detect-node.outputs.is-node-app == 'true'
+      working-directory: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
       run: |
         npm install
         npm run build --if-present
         npm run test --if-present
 
     - name: Upload artifact for deployment job
+      if: steps.detect-node.outputs.is-node-app == 'true'
       uses: actions/upload-artifact@v4
       with:
         name: node-app
         path: .
 
   deploy:
+    if: needs.build.outputs.is-node-app == 'true'
     permissions:
       contents: none
     runs-on: ubuntu-latest
